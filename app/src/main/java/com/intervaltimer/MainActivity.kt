@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,12 +28,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonMinusRestTime: Button
     private lateinit var buttonPlusRestTime: Button
 
+    private lateinit var buttonPause: Button
+    private lateinit var buttonRestart: Button
+    private lateinit var buttonStop: Button
+
     private var countDownTimer: CountDownTimer? = null
     private var currentSet = 0
     private var totalSets = 0
     private var workTimeSeconds = 0L
     private var restTimeSeconds = 0L
     private var isWorkPeriod = true
+    private var timeRemainingMillis = 0L // To store remaining time when paused
+    private var isPaused = false // To track pause state
 
     private var periodMediaPlayer: MediaPlayer? = null // For work/rest sounds
     private var beepMediaPlayer: MediaPlayer? = null // For continuous beep sound
@@ -55,7 +62,20 @@ class MainActivity : AppCompatActivity() {
         buttonMinusRestTime = findViewById(R.id.buttonMinusRestTime)
         buttonPlusRestTime = findViewById(R.id.buttonPlusRestTime)
 
+        buttonPause = findViewById(R.id.buttonPause)
+        buttonRestart = findViewById(R.id.buttonRestart)
+        buttonStop = findViewById(R.id.buttonStop)
+
         buttonStart.setOnClickListener { startTimer() }
+        buttonPause.setOnClickListener { pauseTimer() }
+        buttonRestart.setOnClickListener { restartTimer() }
+        buttonStop.setOnClickListener { stopTimer() }
+
+        // Initial button visibility
+        buttonStart.visibility = View.VISIBLE
+        buttonPause.visibility = View.GONE
+        buttonRestart.visibility = View.GONE
+        buttonStop.visibility = View.GONE
 
         buttonMinusSets.setOnClickListener { decrementValue(editTextSets) }
         buttonPlusSets.setOnClickListener { incrementValue(editTextSets) }
@@ -68,6 +88,18 @@ class MainActivity : AppCompatActivity() {
         editTextSets.setText("5")
         editTextWorkTime.setText("20")
         editTextRestTime.setText("10")
+    }
+
+    private fun enableInputFields(enable: Boolean) {
+        editTextSets.isEnabled = enable
+        editTextWorkTime.isEnabled = enable
+        editTextRestTime.isEnabled = enable
+        buttonMinusSets.isEnabled = enable
+        buttonPlusSets.isEnabled = enable
+        buttonMinusWorkTime.isEnabled = enable
+        buttonPlusWorkTime.isEnabled = enable
+        buttonMinusRestTime.isEnabled = enable
+        buttonPlusRestTime.isEnabled = enable
     }
 
     private fun decrementValue(editText: EditText) {
@@ -103,16 +135,80 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // Hide Start button, show Pause and Stop
+        buttonStart.visibility = View.GONE
+        buttonPause.visibility = View.VISIBLE
+        buttonStop.visibility = View.VISIBLE
+        buttonRestart.visibility = View.GONE
+        buttonPause.text = "Pause"
+
+        enableInputFields(false)
+
         currentSet = 1
         isWorkPeriod = true
+        isPaused = false
 
-        // Start initial 5-second beep before the first work period
+        // Start initial 3-second beep before the first work period
         startInitialOverallBeep()
     }
 
+    private fun pauseTimer() {
+        if (isPaused) { // Currently paused, so resume
+            isPaused = false
+            buttonPause.text = "Pause"
+            buttonRestart.visibility = View.GONE // Hide restart when resuming
+            // Resume the timer from timeRemainingMillis
+            if (isWorkPeriod) {
+                startPeriod(timeRemainingMillis, "Work")
+            } else {
+                startPeriod(timeRemainingMillis, "Rest")
+            }
+        } else { // Currently running, so pause
+            countDownTimer?.cancel()
+            stopBeepSound()
+            isPaused = true
+            buttonPause.text = "Resume"
+            buttonRestart.visibility = View.VISIBLE // Show restart when paused
+        }
+    }
+
+    private fun restartTimer() {
+        stopTimer() // Reset everything
+        // Visibility handled by stopTimer()
+        textViewStatus.text = "Ready"
+        updateTimerText(0)
+    }
+
+    private fun stopTimer() {
+        countDownTimer?.cancel()
+        stopBeepSound()
+        periodMediaPlayer?.release()
+        periodMediaPlayer = null
+        isPaused = false
+        timeRemainingMillis = 0L
+        currentSet = 0
+        totalSets = 0
+        workTimeSeconds = 0L
+        restTimeSeconds = 0L
+        isWorkPeriod = true
+
+        // Reset UI and enable input fields
+        textViewStatus.text = "Stopped"
+        updateTimerText(0)
+
+        // Show Start button, hide Pause, Restart, Stop
+        buttonStart.visibility = View.VISIBLE
+        buttonPause.visibility = View.GONE
+        buttonRestart.visibility = View.GONE
+        buttonStop.visibility = View.GONE
+        buttonPause.text = "Pause"
+
+        enableInputFields(true)
+    }
+
     private fun startInitialOverallBeep() {
-        val initialBeepDuration = 5000L // 5 seconds
-        textViewTimer.text = "00:05" // Display 5 seconds for the initial beep
+        val initialBeepDuration = 3000L // 3 seconds
+        textViewTimer.text = "00:03" // Display 3 seconds for the initial beep
         textViewStatus.text = "Get Ready!"
         startBeepSound()
 
@@ -134,24 +230,27 @@ class MainActivity : AppCompatActivity() {
         stopBeepSound()
         textViewStatus.text = "Set $currentSet: $periodType"
 
-        if (periodType == "Rest") {
-            playPeriodSound(R.raw.rest)
-        }
-        startMainTimer(durationMillis)
+        // No period sound played at the beginning of work/rest periods anymore
+        timeRemainingMillis = durationMillis // Store total duration for this period
+        startMainTimer(timeRemainingMillis)
     }
 
     private fun startMainTimer(durationMillis: Long) {
         countDownTimer?.cancel() // Cancel any previous timers
-        if (isWorkPeriod) {
-            playPeriodSound(R.raw.work) // Play work sound when work period actually starts
-        }
         countDownTimer = object : CountDownTimer(durationMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
+                timeRemainingMillis = millisUntilFinished // Update remaining time
                 val seconds = millisUntilFinished / 1000
                 updateTimerText(seconds)
 
-                if (seconds == 5L) { // Start beep exactly at 5 seconds
+                if (seconds == 3L) { // Start beep exactly at 3 seconds
                     startBeepSound()
+                    // Play work/rest sound when 3 seconds remaining
+                    if (isWorkPeriod) {
+                        playPeriodSound(R.raw.work)
+                    } else {
+                        playPeriodSound(R.raw.rest)
+                    }
                 } else if (seconds == 0L) { // Stop beep exactly at 0 seconds
                     stopBeepSound()
                 }
@@ -183,6 +282,13 @@ class MainActivity : AppCompatActivity() {
             textViewStatus.text = "Finished!"
             updateTimerText(0)
             Toast.makeText(this, "Interval Timer Completed!", Toast.LENGTH_LONG).show()
+            // Show Start button, hide Pause, Restart, Stop
+            buttonStart.visibility = View.VISIBLE
+            buttonPause.visibility = View.GONE
+            buttonRestart.visibility = View.GONE
+            buttonStop.visibility = View.GONE
+            buttonPause.text = "Pause"
+            enableInputFields(true)
         }
     }
 
