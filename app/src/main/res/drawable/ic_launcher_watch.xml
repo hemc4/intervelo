@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Watch casing (outer circle) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,10C30.7,10 11,30.7 11,54s19.7,44 43,44s43,-19.7 43,-44S77.3,10 54,10z"/>
+    <!-- Watch face (inner solid circle) -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M54,14c-22.09,0 -40,17.91 -40,40s17.91,40 40,40s40,-17.91 40,-40S76.09,14 54,14z"/>
+    <!-- Hour hand (shorter and thicker, pointing to 3 o'clock) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,51L68,51L68,57L54,57L54,51z"/>
+    <!-- Minute hand (longer and thinner, pointing to 12 o'clock) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M53,54L53,20L55,20L55,54L53,54z"/>
+    <!-- Center dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,52m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+</vector>
