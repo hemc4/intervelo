@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import android.os.Handler
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var editTextConfigName: EditText
     private lateinit var buttonSaveConfig: Button
+    private lateinit var buttonSaveConfigIcon: ImageButton
     private lateinit var recyclerViewSavedConfigs: RecyclerView
 
     private lateinit var sharedPreferences: SharedPreferences
@@ -80,6 +82,7 @@ class MainActivity : AppCompatActivity() {
 
         editTextConfigName = findViewById(R.id.editTextConfigName)
         buttonSaveConfig = findViewById(R.id.buttonSaveConfig)
+        buttonSaveConfigIcon = findViewById(R.id.buttonSaveConfigIcon)
         recyclerViewSavedConfigs = findViewById(R.id.recyclerViewSavedConfigs)
 
         sharedPreferences = getSharedPreferences("TimerConfigs", Context.MODE_PRIVATE)
@@ -89,12 +92,15 @@ class MainActivity : AppCompatActivity() {
         buttonRestart.setOnClickListener { restartTimer() }
         buttonStop.setOnClickListener { stopTimer() }
         buttonSaveConfig.setOnClickListener { saveConfig() }
+        buttonSaveConfigIcon.setOnClickListener { toggleSaveConfigVisibility() }
 
         // Initial button visibility
         buttonStart.visibility = View.VISIBLE
         buttonPause.visibility = View.GONE
         buttonRestart.visibility = View.GONE
         buttonStop.visibility = View.GONE
+        editTextConfigName.visibility = View.GONE
+        buttonSaveConfig.visibility = View.GONE
 
         buttonMinusSets.setOnClickListener { decrementValue(editTextSets) }
         buttonPlusSets.setOnClickListener { incrementValue(editTextSets) }
@@ -190,6 +196,18 @@ class MainActivity : AppCompatActivity() {
         saveConfigsToPrefs()
 
         editTextConfigName.text.clear()
+        editTextConfigName.visibility = View.GONE
+        buttonSaveConfig.visibility = View.GONE
+    }
+
+    private fun toggleSaveConfigVisibility() {
+        if (editTextConfigName.visibility == View.VISIBLE) {
+            editTextConfigName.visibility = View.GONE
+            buttonSaveConfig.visibility = View.GONE
+        } else {
+            editTextConfigName.visibility = View.VISIBLE
+            buttonSaveConfig.visibility = View.VISIBLE
+        }
     }
 
     private fun loadConfigs() {
