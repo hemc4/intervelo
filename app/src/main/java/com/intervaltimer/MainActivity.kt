@@ -12,6 +12,12 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.content.Intent
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,6 +38,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonPause: Button
     private lateinit var buttonRestart: Button
     private lateinit var buttonStop: Button
+
+    private lateinit var editTextConfigName: EditText
+    private lateinit var buttonSaveConfig: Button
+    private lateinit var recyclerViewSavedConfigs: RecyclerView
+
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var configAdapter: ConfigAdapter
+    private val savedConfigs = mutableListOf<TimerConfig>()
 
     private var countDownTimer: CountDownTimer? = null
     private var currentSet = 0
@@ -64,10 +78,17 @@ class MainActivity : AppCompatActivity() {
         buttonRestart = findViewById(R.id.buttonRestart)
         buttonStop = findViewById(R.id.buttonStop)
 
+        editTextConfigName = findViewById(R.id.editTextConfigName)
+        buttonSaveConfig = findViewById(R.id.buttonSaveConfig)
+        recyclerViewSavedConfigs = findViewById(R.id.recyclerViewSavedConfigs)
+
+        sharedPreferences = getSharedPreferences("TimerConfigs", Context.MODE_PRIVATE)
+
         buttonStart.setOnClickListener { startTimer() }
         buttonPause.setOnClickListener { pauseTimer() }
         buttonRestart.setOnClickListener { restartTimer() }
         buttonStop.setOnClickListener { stopTimer() }
+        buttonSaveConfig.setOnClickListener { saveConfig() }
 
         // Initial button visibility
         buttonStart.visibility = View.VISIBLE
@@ -86,6 +107,19 @@ class MainActivity : AppCompatActivity() {
         editTextSets.setText("5")
         editTextWorkTime.setText("20")
         editTextRestTime.setText("10")
+
+        // Setup RecyclerView
+        configAdapter = ConfigAdapter(savedConfigs) { config ->
+            // Handle item click: load config into EditTexts
+            editTextSets.setText(config.sets.toString())
+            editTextWorkTime.setText(config.workTime.toString())
+            editTextRestTime.setText(config.restTime.toString())
+            Toast.makeText(this, "Loaded: ${config.name}", Toast.LENGTH_SHORT).show()
+        }
+        recyclerViewSavedConfigs.layoutManager = LinearLayoutManager(this)
+        recyclerViewSavedConfigs.adapter = configAdapter
+
+        loadConfigs() // Load saved configs on startup
     }
 
     private fun enableInputFields(enable: Boolean) {
@@ -98,6 +132,62 @@ class MainActivity : AppCompatActivity() {
         buttonPlusWorkTime.isEnabled = enable
         buttonMinusRestTime.isEnabled = enable
         buttonPlusRestTime.isEnabled = enable
+        editTextConfigName.isEnabled = enable // Enable/disable config name input
+        buttonSaveConfig.isEnabled = enable // Enable/disable save button
+    }
+
+    private fun saveConfig() {
+        val configName = editTextConfigName.text.toString().trim()
+        if (configName.isEmpty()) {
+            Toast.makeText(this, "Please enter a configuration name", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val sets = editTextSets.text.toString().toIntOrNull()
+        val workTime = editTextWorkTime.text.toString().toLongOrNull()
+        val restTime = editTextRestTime.text.toString().toLongOrNull()
+
+        if (sets == null || workTime == null || restTime == null) {
+            Toast.makeText(this, "Please enter valid timer values", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val newConfig = TimerConfig(configName, sets, workTime, restTime)
+
+        // Check if a config with the same name already exists and replace it
+        val existingIndex = savedConfigs.indexOfFirst { it.name == configName }
+        if (existingIndex != -1) {
+            savedConfigs[existingIndex] = newConfig
+            Toast.makeText(this, "Configuration \"$configName\" updated!", Toast.LENGTH_SHORT).show()
+        } else {
+            savedConfigs.add(newConfig)
+            Toast.makeText(this, "Configuration \"$configName\" saved!", Toast.LENGTH_SHORT).show()
+        }
+
+        // Sort by name for consistent display
+        savedConfigs.sortBy { it.name }
+        configAdapter.notifyDataSetChanged()
+
+        // Save to SharedPreferences
+        val editor = sharedPreferences.edit()
+        val gson = Gson()
+        val json = gson.toJson(savedConfigs)
+        editor.putString("saved_timer_configs", json)
+        editor.apply()
+
+        editTextConfigName.text.clear()
+    }
+
+    private fun loadConfigs() {
+        val gson = Gson()
+        val json = sharedPreferences.getString("saved_timer_configs", null)
+        if (json != null) {
+            val type = object : TypeToken<MutableList<TimerConfig>>() {}.type
+            val loadedList: MutableList<TimerConfig> = gson.fromJson(json, type)
+            savedConfigs.clear()
+            savedConfigs.addAll(loadedList)
+            configAdapter.notifyDataSetChanged()
+        }
     }
 
     private fun decrementValue(editText: EditText) {

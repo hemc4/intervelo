@@ -1,182 +1,210 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="#E3F2FD"
     android:padding="16dp"
-    android:background="#E3F2FD" 
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/textViewSetsLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Number of Sets:"
-        android:textSize="18sp"
         android:textColor="#1976D2"
-        android:layout_marginTop="8dp"/>
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/layoutSetsInput"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
         android:gravity="center_vertical"
-        android:layout_marginBottom="16dp">
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewSetsLabel">
 
         <Button
             android:id="@+id/buttonMinusSets"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-"
             android:backgroundTint="#42A5F5"
-            android:textColor="#FFFFFF"/>
+            android:text="-"
+            android:textColor="#FFFFFF" />
 
         <EditText
             android:id="@+id/editTextSets"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:inputType="number"
             android:hint="e.g., 5"
+            android:inputType="number"
             android:textAlignment="center"
-            android:textColor="#2196F3"/>
+            android:textColor="#2196F3" />
 
         <Button
             android:id="@+id/buttonPlusSets"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+"
             android:backgroundTint="#42A5F5"
-            android:textColor="#FFFFFF"/>
+            android:text="+"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <TextView
+        android:id="@+id/textViewWorkTimeLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Work Time (seconds):"
+        android:textColor="#1976D2"
         android:textSize="18sp"
-        android:textColor="#1976D2"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutSetsInput" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/layoutWorkTimeInput"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
         android:gravity="center_vertical"
-        android:layout_marginBottom="16dp">
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewWorkTimeLabel">
 
         <Button
             android:id="@+id/buttonMinusWorkTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-"
             android:backgroundTint="#2196F3"
-            android:textColor="#FFFFFF"/>
+            android:text="-"
+            android:textColor="#FFFFFF" />
 
         <EditText
             android:id="@+id/editTextWorkTime"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:inputType="number"
             android:hint="e.g., 60"
+            android:inputType="number"
             android:textAlignment="center"
-            android:textColor="#2196F3"/>
+            android:textColor="#2196F3" />
 
         <Button
             android:id="@+id/buttonPlusWorkTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+"
             android:backgroundTint="#2196F3"
-            android:textColor="#FFFFFF"/>
+            android:text="+"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <TextView
+        android:id="@+id/textViewRestTimeLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Rest Time (seconds):"
+        android:textColor="#1976D2"
         android:textSize="18sp"
-        android:textColor="#1976D2"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutWorkTimeInput" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/layoutRestTimeInput"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginBottom="24dp"
         android:gravity="center_vertical"
-        android:layout_marginBottom="24dp">
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewRestTimeLabel">
 
         <Button
             android:id="@+id/buttonMinusRestTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-"
             android:backgroundTint="#1E88E5"
-            android:textColor="#FFFFFF"/>
+            android:text="-"
+            android:textColor="#FFFFFF" />
 
         <EditText
             android:id="@+id/editTextRestTime"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:inputType="number"
             android:hint="e.g., 30"
+            android:inputType="number"
             android:textAlignment="center"
-            android:textColor="#2196F3"/>
+            android:textColor="#2196F3" />
 
         <Button
             android:id="@+id/buttonPlusRestTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+"
             android:backgroundTint="#1E88E5"
-            android:textColor="#FFFFFF"/>
+            android:text="+"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <Button
         android:id="@+id/buttonStart"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start Timer"
-        android:layout_gravity="center_horizontal"
         android:backgroundTint="#0D47A1"
-        android:textColor="#FFFFFF"
+        android:paddingBottom="12dp"
         android:paddingLeft="32dp"
         android:paddingRight="32dp"
         android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:textSize="20sp"/>
+        android:text="Start Timer"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutRestTimeInput" />
 
     <LinearLayout
+        android:id="@+id/layoutControlButtons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:orientation="horizontal"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonStart">
 
         <Button
             android:id="@+id/buttonPause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pause"
+            android:layout_marginEnd="8dp"
             android:backgroundTint="#FFC107"
-            android:textColor="#FFFFFF"
-            android:layout_marginEnd="8dp"/>
+            android:text="Pause"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/buttonRestart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Restart"
+            android:layout_marginEnd="8dp"
             android:backgroundTint="#03A9F4"
-            android:textColor="#FFFFFF"
-            android:layout_marginEnd="8dp"/>
+            android:text="Restart"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/buttonStop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Stop"
             android:backgroundTint="#F44336"
-            android:textColor="#FFFFFF"/>
+            android:text="Stop"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <TextView
@@ -184,21 +212,70 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:layout_gravity="center_horizontal"
+        android:text="00:00"
+        android:textColor="#0D47A1"
         android:textSize="60sp"
         android:textStyle="bold"
-        android:textColor="#0D47A1"
-        android:text="00:00" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutControlButtons" />
 
     <TextView
         android:id="@+id/textViewStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_gravity="center_horizontal"
+        android:text="Ready"
+        android:textColor="#2196F3"
         android:textSize="30sp"
         android:textStyle="italic"
-        android:textColor="#2196F3"
-        android:text="Ready" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewTimer" />
 
-</LinearLayout>
+    <!-- Saved Configurations Section -->
+    <Button
+        android:id="@+id/buttonSaveConfig"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <EditText
+        android:id="@+id/editTextConfigName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Configuration Name"
+        android:inputType="textCapWords"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/buttonSaveConfig"
+        app:layout_constraintBottom_toBottomOf="@id/buttonSaveConfig" />
+
+    <TextView
+        android:id="@+id/textViewSavedConfigsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Saved Configurations:"
+        android:textSize="18sp"
+        android:textColor="#1976D2"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/editTextConfigName" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewSavedConfigs"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewStatus"
+        app:layout_constraintBottom_toTopOf="@id/textViewSavedConfigsLabel" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
