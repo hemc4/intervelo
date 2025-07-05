@@ -109,17 +109,35 @@ class MainActivity : AppCompatActivity() {
         editTextRestTime.setText("10")
 
         // Setup RecyclerView
-        configAdapter = ConfigAdapter(savedConfigs) { config ->
+        configAdapter = ConfigAdapter(savedConfigs, {
             // Handle item click: load config into EditTexts
-            editTextSets.setText(config.sets.toString())
-            editTextWorkTime.setText(config.workTime.toString())
-            editTextRestTime.setText(config.restTime.toString())
-            Toast.makeText(this, "Loaded: ${config.name}", Toast.LENGTH_SHORT).show()
-        }
+            editTextSets.setText(it.sets.toString())
+            editTextWorkTime.setText(it.workTime.toString())
+            editTextRestTime.setText(it.restTime.toString())
+            Toast.makeText(this, "Loaded: ${it.name}", Toast.LENGTH_SHORT).show()
+        }, {
+            // Handle delete click
+            deleteConfig(it)
+        })
         recyclerViewSavedConfigs.layoutManager = LinearLayoutManager(this)
         recyclerViewSavedConfigs.adapter = configAdapter
 
         loadConfigs() // Load saved configs on startup
+    }
+
+    private fun deleteConfig(config: TimerConfig) {
+        savedConfigs.remove(config)
+        configAdapter.notifyDataSetChanged()
+        saveConfigsToPrefs()
+        Toast.makeText(this, "Deleted: ${config.name}", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun saveConfigsToPrefs() {
+        val editor = sharedPreferences.edit()
+        val gson = Gson()
+        val json = gson.toJson(savedConfigs)
+        editor.putString("saved_timer_configs", json)
+        editor.apply()
     }
 
     private fun enableInputFields(enable: Boolean) {
@@ -169,11 +187,7 @@ class MainActivity : AppCompatActivity() {
         configAdapter.notifyDataSetChanged()
 
         // Save to SharedPreferences
-        val editor = sharedPreferences.edit()
-        val gson = Gson()
-        val json = gson.toJson(savedConfigs)
-        editor.putString("saved_timer_configs", json)
-        editor.apply()
+        saveConfigsToPrefs()
 
         editTextConfigName.text.clear()
     }
