@@ -264,9 +264,9 @@
         android:text="Saved Configurations:"
         android:textSize="18sp"
         android:textColor="#1976D2"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/editTextConfigName" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewStatus" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewSavedConfigs"
@@ -275,7 +275,7 @@
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewStatus"
-        app:layout_constraintBottom_toTopOf="@id/textViewSavedConfigsLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewSavedConfigsLabel"
+        app:layout_constraintBottom_toTopOf="@+id/editTextConfigName" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
