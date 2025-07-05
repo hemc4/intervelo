@@ -12,6 +12,7 @@ import android.widget.Toast
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.content.Intent
 import android.content.Context
 import android.content.SharedPreferences
@@ -204,9 +205,16 @@ class MainActivity : AppCompatActivity() {
         if (editTextConfigName.visibility == View.VISIBLE) {
             editTextConfigName.visibility = View.GONE
             buttonSaveConfig.visibility = View.GONE
+            // Hide keyboard
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(editTextConfigName.windowToken, 0)
         } else {
             editTextConfigName.visibility = View.VISIBLE
             buttonSaveConfig.visibility = View.VISIBLE
+            editTextConfigName.requestFocus()
+            // Show keyboard
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(editTextConfigName, InputMethodManager.SHOW_IMPLICIT)
         }
     }
 
