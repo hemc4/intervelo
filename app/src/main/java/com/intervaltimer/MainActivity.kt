@@ -342,7 +342,10 @@ class MainActivity : AppCompatActivity() {
         countDownTimer = object : CountDownTimer(initialBeepDuration, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = millisUntilFinished / 1000
-                textViewTimer.text = String.format("00:%02d", seconds)
+                // Only update UI if activity is still valid
+                if (!isDestroyed && !isFinishing) {
+                    textViewTimer.text = String.format("00:%02d", seconds)
+                }
             }
 
             override fun onFinish() {
@@ -368,7 +371,11 @@ class MainActivity : AppCompatActivity() {
             override fun onTick(millisUntilFinished: Long) {
                 timeRemainingMillis = millisUntilFinished // Update remaining time
                 val seconds = millisUntilFinished / 1000
-                updateTimerText(seconds)
+                
+                // Only update UI if activity is still valid
+                if (!isDestroyed && !isFinishing) {
+                    updateTimerText(seconds)
+                }
 
                 if (seconds == 3L) { // Start beep exactly at 3 seconds
                     startService(Intent(this@MainActivity, SoundService::class.java).apply { action = SoundService.ACTION_PLAY_BEEP })
@@ -421,14 +428,40 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTimerText(seconds: Long) {
-        val minutes = seconds / 60
-        val remainingSeconds = seconds % 60
-        textViewTimer.text = String.format("%02d:%02d", minutes, remainingSeconds)
+        // Check if activity is still valid before updating UI
+        if (!isDestroyed && !isFinishing) {
+            val minutes = seconds / 60
+            val remainingSeconds = seconds % 60
+            textViewTimer.text = String.format("%02d:%02d", minutes, remainingSeconds)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // If the timer is running, save its state
+        if (!isPaused && countDownTimer != null) {
+            isPaused = true
+            // Consider starting the service if needed
+            startService(Intent(this, SoundService::class.java).apply { action = SoundService.ACTION_START_FOREGROUND })
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Restore the timer state if needed
+        if (isPaused && timeRemainingMillis > 0) {
+            if (isWorkPeriod) {
+                startPeriod(timeRemainingMillis, "Work")
+            } else {
+                startPeriod(timeRemainingMillis, "Rest")
+            }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         countDownTimer?.cancel()
+        startService(Intent(this, SoundService::class.java).apply { action = SoundService.ACTION_STOP_FOREGROUND })
         stopService(Intent(this@MainActivity, SoundService::class.java)) // Stop the service completely
     }
 }
