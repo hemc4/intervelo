@@ -67,7 +67,7 @@
         android:id="@+id/textViewWorkTimeLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Work Time (seconds):"
+        android:text="Work Time:"
         android:textColor="#1976D2"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -93,14 +93,34 @@
             android:textColor="#FFFFFF" />
 
         <EditText
-            android:id="@+id/editTextWorkTime"
+            android:id="@+id/editTextWorkTimeMinutes"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="e.g., 60"
+            android:hint="Min"
             android:inputType="number"
             android:textAlignment="center"
-            android:textColor="#2196F3" />
+            android:textColor="#2196F3"
+            android:maxLength="2" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=":"
+            android:textSize="20sp"
+            android:textColor="#1976D2"
+            android:layout_marginHorizontal="4dp" />
+
+        <EditText
+            android:id="@+id/editTextWorkTimeSeconds"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Sec"
+            android:inputType="number"
+            android:textAlignment="center"
+            android:textColor="#2196F3"
+            android:maxLength="2" />
 
         <Button
             android:id="@+id/buttonPlusWorkTime"

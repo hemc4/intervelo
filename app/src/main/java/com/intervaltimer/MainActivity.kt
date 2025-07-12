@@ -24,7 +24,8 @@ import com.google.gson.reflect.TypeToken
 class MainActivity : AppCompatActivity() {
 
     private lateinit var editTextSets: EditText
-    private lateinit var editTextWorkTime: EditText
+    private lateinit var editTextWorkTimeMinutes: EditText
+    private lateinit var editTextWorkTimeSeconds: EditText
     private lateinit var editTextRestTime: EditText
     private lateinit var buttonStart: Button
     private lateinit var textViewTimer: TextView
@@ -64,7 +65,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         editTextSets = findViewById(R.id.editTextSets)
-        editTextWorkTime = findViewById(R.id.editTextWorkTime)
+        editTextWorkTimeMinutes = findViewById(R.id.editTextWorkTimeMinutes)
+        editTextWorkTimeSeconds = findViewById(R.id.editTextWorkTimeSeconds)
         editTextRestTime = findViewById(R.id.editTextRestTime)
         buttonStart = findViewById(R.id.buttonStart)
         textViewTimer = findViewById(R.id.textViewTimer)
@@ -105,21 +107,29 @@ class MainActivity : AppCompatActivity() {
 
         buttonMinusSets.setOnClickListener { decrementValue(editTextSets) }
         buttonPlusSets.setOnClickListener { incrementValue(editTextSets) }
-        buttonMinusWorkTime.setOnClickListener { decrementValue(editTextWorkTime) }
-        buttonPlusWorkTime.setOnClickListener { incrementValue(editTextWorkTime) }
+        buttonMinusWorkTime.setOnClickListener { decrementWorkTime() }
+        buttonPlusWorkTime.setOnClickListener { incrementWorkTime() }
         buttonMinusRestTime.setOnClickListener { decrementValue(editTextRestTime) }
         buttonPlusRestTime.setOnClickListener { incrementValue(editTextRestTime) }
 
         // Set initial values
         editTextSets.setText("5")
-        editTextWorkTime.setText("20")
+        editTextWorkTimeMinutes.setText("0")
+        editTextWorkTimeSeconds.setText("20")
         editTextRestTime.setText("10")
+        
+        // Add input validation for seconds field
+        editTextWorkTimeSeconds.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                validateAndAdjustSeconds()
+            }
+        }
 
         // Setup RecyclerView
         configAdapter = ConfigAdapter(savedConfigs, {
             // Handle item click: load config into EditTexts
             editTextSets.setText(it.sets.toString())
-            editTextWorkTime.setText(it.workTime.toString())
+            setWorkTimeFromSeconds(it.workTime)
             editTextRestTime.setText(it.restTime.toString())
             Toast.makeText(this, "Loaded: ${it.name}", Toast.LENGTH_SHORT).show()
         }, {
@@ -149,7 +159,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun enableInputFields(enable: Boolean) {
         editTextSets.isEnabled = enable
-        editTextWorkTime.isEnabled = enable
+        editTextWorkTimeMinutes.isEnabled = enable
+        editTextWorkTimeSeconds.isEnabled = enable
         editTextRestTime.isEnabled = enable
         buttonMinusSets.isEnabled = enable
         buttonPlusSets.isEnabled = enable
@@ -169,10 +180,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         val sets = editTextSets.text.toString().toIntOrNull()
-        val workTime = editTextWorkTime.text.toString().toLongOrNull()
+        val workTime = getWorkTimeInSeconds()
         val restTime = editTextRestTime.text.toString().toLongOrNull()
 
-        if (sets == null || workTime == null || restTime == null) {
+        if (sets == null || workTime <= 0 || restTime == null) {
             Toast.makeText(this, "Please enter valid timer values", Toast.LENGTH_SHORT).show()
             return
         }
@@ -243,19 +254,70 @@ class MainActivity : AppCompatActivity() {
         value++
         editText.setText(value.toString())
     }
+    
+    private fun decrementWorkTime() {
+        val currentMinutes = editTextWorkTimeMinutes.text.toString().toIntOrNull() ?: 0
+        val currentSeconds = editTextWorkTimeSeconds.text.toString().toIntOrNull() ?: 0
+        
+        var totalSeconds = currentMinutes * 60 + currentSeconds
+        if (totalSeconds > 0) {
+            totalSeconds--
+            val newMinutes = totalSeconds / 60
+            val newSeconds = totalSeconds % 60
+            editTextWorkTimeMinutes.setText(newMinutes.toString())
+            editTextWorkTimeSeconds.setText(newSeconds.toString())
+        }
+    }
+    
+    private fun incrementWorkTime() {
+        val currentMinutes = editTextWorkTimeMinutes.text.toString().toIntOrNull() ?: 0
+        val currentSeconds = editTextWorkTimeSeconds.text.toString().toIntOrNull() ?: 0
+        
+        var totalSeconds = currentMinutes * 60 + currentSeconds
+        totalSeconds++
+        val newMinutes = totalSeconds / 60
+        val newSeconds = totalSeconds % 60
+        editTextWorkTimeMinutes.setText(newMinutes.toString())
+        editTextWorkTimeSeconds.setText(newSeconds.toString())
+    }
+    
+    private fun getWorkTimeInSeconds(): Long {
+        val minutes = editTextWorkTimeMinutes.text.toString().toIntOrNull() ?: 0
+        val seconds = editTextWorkTimeSeconds.text.toString().toIntOrNull() ?: 0
+        return (minutes * 60 + seconds).toLong()
+    }
+    
+    private fun setWorkTimeFromSeconds(totalSeconds: Long) {
+        val minutes = (totalSeconds / 60).toInt()
+        val seconds = (totalSeconds % 60).toInt()
+        editTextWorkTimeMinutes.setText(minutes.toString())
+        editTextWorkTimeSeconds.setText(seconds.toString())
+    }
+    
+    private fun validateAndAdjustSeconds() {
+        val seconds = editTextWorkTimeSeconds.text.toString().toIntOrNull() ?: 0
+        if (seconds >= 60) {
+            val minutes = editTextWorkTimeMinutes.text.toString().toIntOrNull() ?: 0
+            val extraMinutes = seconds / 60
+            val remainingSeconds = seconds % 60
+            editTextWorkTimeMinutes.setText((minutes + extraMinutes).toString())
+            editTextWorkTimeSeconds.setText(remainingSeconds.toString())
+        }
+    }
 
     private fun startTimer() {
         val setsStr = editTextSets.text.toString()
-        val workTimeStr = editTextWorkTime.text.toString()
+        val workTimeMinutesStr = editTextWorkTimeMinutes.text.toString()
+        val workTimeSecondsStr = editTextWorkTimeSeconds.text.toString()
         val restTimeStr = editTextRestTime.text.toString()
 
-        if (setsStr.isEmpty() || workTimeStr.isEmpty() || restTimeStr.isEmpty()) {
+        if (setsStr.isEmpty() || workTimeMinutesStr.isEmpty() || workTimeSecondsStr.isEmpty() || restTimeStr.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
         totalSets = setsStr.toInt()
-        workTimeSeconds = workTimeStr.toLong()
+        workTimeSeconds = getWorkTimeInSeconds()
         restTimeSeconds = restTimeStr.toLong()
 
         if (totalSets <= 0 || workTimeSeconds <= 0 || restTimeSeconds < 0) {
