@@ -26,7 +26,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var editTextSets: EditText
     private lateinit var editTextWorkTimeMinutes: EditText
     private lateinit var editTextWorkTimeSeconds: EditText
-    private lateinit var editTextRestTime: EditText
+    private lateinit var editTextRestTimeMinutes: EditText
+    private lateinit var editTextRestTimeSeconds: EditText
     private lateinit var buttonStart: Button
     private lateinit var textViewTimer: TextView
     private lateinit var textViewStatus: TextView
@@ -67,7 +68,8 @@ class MainActivity : AppCompatActivity() {
         editTextSets = findViewById(R.id.editTextSets)
         editTextWorkTimeMinutes = findViewById(R.id.editTextWorkTimeMinutes)
         editTextWorkTimeSeconds = findViewById(R.id.editTextWorkTimeSeconds)
-        editTextRestTime = findViewById(R.id.editTextRestTime)
+        editTextRestTimeMinutes = findViewById(R.id.editTextRestTimeMinutes)
+        editTextRestTimeSeconds = findViewById(R.id.editTextRestTimeSeconds)
         buttonStart = findViewById(R.id.buttonStart)
         textViewTimer = findViewById(R.id.textViewTimer)
         textViewStatus = findViewById(R.id.textViewStatus)
@@ -109,19 +111,26 @@ class MainActivity : AppCompatActivity() {
         buttonPlusSets.setOnClickListener { incrementValue(editTextSets) }
         buttonMinusWorkTime.setOnClickListener { decrementWorkTime() }
         buttonPlusWorkTime.setOnClickListener { incrementWorkTime() }
-        buttonMinusRestTime.setOnClickListener { decrementValue(editTextRestTime) }
-        buttonPlusRestTime.setOnClickListener { incrementValue(editTextRestTime) }
+        buttonMinusRestTime.setOnClickListener { decrementRestTime() }
+        buttonPlusRestTime.setOnClickListener { incrementRestTime() }
 
         // Set initial values
         editTextSets.setText("5")
         editTextWorkTimeMinutes.setText("0")
         editTextWorkTimeSeconds.setText("20")
-        editTextRestTime.setText("10")
+        editTextRestTimeMinutes.setText("0")
+        editTextRestTimeSeconds.setText("10")
         
-        // Add input validation for seconds field
+        // Add input validation for seconds fields
         editTextWorkTimeSeconds.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                validateAndAdjustSeconds()
+                validateAndAdjustWorkTimeSeconds()
+            }
+        }
+        
+        editTextRestTimeSeconds.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                validateAndAdjustRestTimeSeconds()
             }
         }
 
@@ -130,7 +139,7 @@ class MainActivity : AppCompatActivity() {
             // Handle item click: load config into EditTexts
             editTextSets.setText(it.sets.toString())
             setWorkTimeFromSeconds(it.workTime)
-            editTextRestTime.setText(it.restTime.toString())
+            setRestTimeFromSeconds(it.restTime)
             Toast.makeText(this, "Loaded: ${it.name}", Toast.LENGTH_SHORT).show()
         }, {
             // Handle delete click
@@ -161,7 +170,8 @@ class MainActivity : AppCompatActivity() {
         editTextSets.isEnabled = enable
         editTextWorkTimeMinutes.isEnabled = enable
         editTextWorkTimeSeconds.isEnabled = enable
-        editTextRestTime.isEnabled = enable
+        editTextRestTimeMinutes.isEnabled = enable
+        editTextRestTimeSeconds.isEnabled = enable
         buttonMinusSets.isEnabled = enable
         buttonPlusSets.isEnabled = enable
         buttonMinusWorkTime.isEnabled = enable
@@ -181,9 +191,9 @@ class MainActivity : AppCompatActivity() {
 
         val sets = editTextSets.text.toString().toIntOrNull()
         val workTime = getWorkTimeInSeconds()
-        val restTime = editTextRestTime.text.toString().toLongOrNull()
+        val restTime = getRestTimeInSeconds()
 
-        if (sets == null || workTime <= 0 || restTime == null) {
+        if (sets == null || workTime <= 0 || restTime < 0) {
             Toast.makeText(this, "Please enter valid timer values", Toast.LENGTH_SHORT).show()
             return
         }
@@ -294,7 +304,7 @@ class MainActivity : AppCompatActivity() {
         editTextWorkTimeSeconds.setText(seconds.toString())
     }
     
-    private fun validateAndAdjustSeconds() {
+    private fun validateAndAdjustWorkTimeSeconds() {
         val seconds = editTextWorkTimeSeconds.text.toString().toIntOrNull() ?: 0
         if (seconds >= 60) {
             val minutes = editTextWorkTimeMinutes.text.toString().toIntOrNull() ?: 0
@@ -304,21 +314,72 @@ class MainActivity : AppCompatActivity() {
             editTextWorkTimeSeconds.setText(remainingSeconds.toString())
         }
     }
+    
+    private fun decrementRestTime() {
+        val currentMinutes = editTextRestTimeMinutes.text.toString().toIntOrNull() ?: 0
+        val currentSeconds = editTextRestTimeSeconds.text.toString().toIntOrNull() ?: 0
+        
+        var totalSeconds = currentMinutes * 60 + currentSeconds
+        if (totalSeconds > 0) {
+            totalSeconds--
+            val newMinutes = totalSeconds / 60
+            val newSeconds = totalSeconds % 60
+            editTextRestTimeMinutes.setText(newMinutes.toString())
+            editTextRestTimeSeconds.setText(newSeconds.toString())
+        }
+    }
+    
+    private fun incrementRestTime() {
+        val currentMinutes = editTextRestTimeMinutes.text.toString().toIntOrNull() ?: 0
+        val currentSeconds = editTextRestTimeSeconds.text.toString().toIntOrNull() ?: 0
+        
+        var totalSeconds = currentMinutes * 60 + currentSeconds
+        totalSeconds++
+        val newMinutes = totalSeconds / 60
+        val newSeconds = totalSeconds % 60
+        editTextRestTimeMinutes.setText(newMinutes.toString())
+        editTextRestTimeSeconds.setText(newSeconds.toString())
+    }
+    
+    private fun getRestTimeInSeconds(): Long {
+        val minutes = editTextRestTimeMinutes.text.toString().toIntOrNull() ?: 0
+        val seconds = editTextRestTimeSeconds.text.toString().toIntOrNull() ?: 0
+        return (minutes * 60 + seconds).toLong()
+    }
+    
+    private fun setRestTimeFromSeconds(totalSeconds: Long) {
+        val minutes = (totalSeconds / 60).toInt()
+        val seconds = (totalSeconds % 60).toInt()
+        editTextRestTimeMinutes.setText(minutes.toString())
+        editTextRestTimeSeconds.setText(seconds.toString())
+    }
+    
+    private fun validateAndAdjustRestTimeSeconds() {
+        val seconds = editTextRestTimeSeconds.text.toString().toIntOrNull() ?: 0
+        if (seconds >= 60) {
+            val minutes = editTextRestTimeMinutes.text.toString().toIntOrNull() ?: 0
+            val extraMinutes = seconds / 60
+            val remainingSeconds = seconds % 60
+            editTextRestTimeMinutes.setText((minutes + extraMinutes).toString())
+            editTextRestTimeSeconds.setText(remainingSeconds.toString())
+        }
+    }
 
     private fun startTimer() {
         val setsStr = editTextSets.text.toString()
         val workTimeMinutesStr = editTextWorkTimeMinutes.text.toString()
         val workTimeSecondsStr = editTextWorkTimeSeconds.text.toString()
-        val restTimeStr = editTextRestTime.text.toString()
+        val restTimeMinutesStr = editTextRestTimeMinutes.text.toString()
+        val restTimeSecondsStr = editTextRestTimeSeconds.text.toString()
 
-        if (setsStr.isEmpty() || workTimeMinutesStr.isEmpty() || workTimeSecondsStr.isEmpty() || restTimeStr.isEmpty()) {
+        if (setsStr.isEmpty() || workTimeMinutesStr.isEmpty() || workTimeSecondsStr.isEmpty() || restTimeMinutesStr.isEmpty() || restTimeSecondsStr.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
         totalSets = setsStr.toInt()
         workTimeSeconds = getWorkTimeInSeconds()
-        restTimeSeconds = restTimeStr.toLong()
+        restTimeSeconds = getRestTimeInSeconds()
 
         if (totalSets <= 0 || workTimeSeconds <= 0 || restTimeSeconds < 0) {
             Toast.makeText(this, "Please enter valid positive numbers", Toast.LENGTH_SHORT).show()
