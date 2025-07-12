@@ -269,6 +269,12 @@ class MainActivity : AppCompatActivity() {
         buttonStop.visibility = View.VISIBLE
         buttonRestart.visibility = View.GONE
         buttonPause.text = "Pause"
+        
+        // Hide save config icon when timer is active
+        buttonSaveConfigIcon.visibility = View.GONE
+        // Also hide save input fields if they're visible
+        editTextConfigName.visibility = View.GONE
+        buttonSaveConfig.visibility = View.GONE
 
         enableInputFields(false)
 
@@ -329,6 +335,9 @@ class MainActivity : AppCompatActivity() {
         buttonRestart.visibility = View.GONE
         buttonStop.visibility = View.GONE
         buttonPause.text = "Pause"
+        
+        // Show save config icon when timer is stopped
+        buttonSaveConfigIcon.visibility = View.VISIBLE
 
         enableInputFields(true)
     }
@@ -422,6 +431,10 @@ class MainActivity : AppCompatActivity() {
             buttonRestart.visibility = View.GONE
             buttonStop.visibility = View.GONE
             buttonPause.text = "Pause"
+            
+            // Show save config icon when timer finishes
+            buttonSaveConfigIcon.visibility = View.VISIBLE
+            
             enableInputFields(true)
             stopService(Intent(this@MainActivity, SoundService::class.java)) // Stop the service completely
         }
