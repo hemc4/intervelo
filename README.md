@@ -32,7 +32,6 @@ This app have been vibe coded with AI. It does not connect to any server and run
 <img width="205" height="445" alt="logo_transparent" src="https://github.com/user-attachments/assets/0debcf9b-c5da-4238-8438-10893f3476c3" />
 <img width="205" height="445" alt="logo_transparent" src="https://github.com/user-attachments/assets/aad32446-76a4-4350-9f22-efeec5a089be" />
 <img width="205" height="445" alt="logo_transparent" src="https://github.com/user-attachments/assets/6edc50b9-a3ac-4c20-ae01-4049197cd391" />
-<img width="205" height="445" alt="logo_transparent" src="https://github.com/user-attachments/assets/91cbc52d-6c39-4c4c-8ea5-a0c286957241" />
 </p>
 
 ## Upcoming Features
