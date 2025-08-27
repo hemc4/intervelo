@@ -345,9 +345,11 @@ class MainActivity : AppCompatActivity() {
         
         enableInputFields(false)
         
-        // Hide configuration sections and show multi-set info when running multi-set
+        // Hide configuration sections for all timer configs when running
+        hideConfigurationSections()
+        
+        // Show multi-set info when running multi-set
         if (isRunningMultiSet) {
-            hideConfigurationSections()
             showMultiSetRunningInfo()
         }
 
@@ -809,16 +811,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMultiSetRunningInfo() {
         if (isRunningMultiSet) {
-            val totalConfigs = currentMultiSetQueue.size
-            val currentConfigNum = currentMultiSetIndex + 1
-
             // Build details text showing each config in the sequence (same format as saved listing)
-            val details = currentMultiSetQueue.joinToString(" → ") { subConfig ->
-                "${subConfig.sets} sets (${subConfig.workTime}s/${subConfig.restTime}s)"
+            val details = currentMultiSetQueue.joinToString(" \n ") { subConfig ->
+                "${subConfig.sets} sets * (${subConfig.workTime}s/${subConfig.restTime}s)"
             }
 
             // Show multi-set name, full details sequence, and current progress
-            val description = "$currentMultiSetName\n$details\nConfig $currentConfigNum of $totalConfigs"
+            val description = "$currentMultiSetName\n$details"
             textViewMultiSetRunning.text = description
             textViewMultiSetRunning.visibility = View.VISIBLE
         }
