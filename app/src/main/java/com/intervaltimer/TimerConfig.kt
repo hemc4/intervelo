@@ -1,4 +1,4 @@
-package com.intervaltimer
+package com.intervelo
 
 data class TimerConfig(
     val name: String,

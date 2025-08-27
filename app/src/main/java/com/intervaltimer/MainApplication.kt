@@ -1,4 +1,4 @@
-package com.intervaltimer
+package com.intervelo
 
 import android.app.Application
 

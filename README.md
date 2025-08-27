@@ -1,14 +1,14 @@
 <p align="center">
-<img width="128" height="128" alt="logo_transparent" src="https://github.com/user-attachments/assets/0cb8bc80-bef5-4063-8667-1fcd7a326752" />
+<img width="128" height="128" alt="logo_transparent" src="https://github.com/user-attachments/assets/e7fa5f05-7961-448d-b8bf-c4ba8c7fd995" />
 </p>
 
-## Interval Timer: Your Workout Companion
+## Intervelo : Your Workout Companion
   Focus on your workout, not the clock. Create custom work and rest intervals for HIIT, Tabata, running, or
   any training style. Save your favorite routines, press start, and let clear audio cues guide you. Simple,
   effective, and built to keep you moving.
 
 ## Installation
-App is not released yet on the store yet. In the meantime, you can [download a released apk](https://github.com/hemc4/interval-timer/tree/main/releases/v1).
+App is not released yet on the store yet. In the meantime, you can [download a released apk](https://github.com/hemc4/intervelo/tree/main/releases/v1).
 
 ## Built with AI
 This app have been vibe coded with AI. It does not connect to any server and run completely on your device. 
@@ -37,8 +37,8 @@ This app have been vibe coded with AI. It does not connect to any server and run
 ## Upcoming Features
 - UX improvements to differentiate work and rest stage
 - Sync the saved configuration to Google drive
-- Advance inteval setting options with multi set configs
-- Customised sounds option 
+- Advance interval setting options with multi set configs
+- Customized sounds option 
 
 ## Bug Report
 
@@ -46,3 +46,4 @@ Thank you for using the app. If you discover any bug, security vulnerability or 
 ## License
 
 This app is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+

@@ -1,4 +1,4 @@
-package com.intervaltimer
+package com.intervelo
 
 import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
@@ -547,7 +547,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             textViewStatus.text = "Finished!"
             updateTimerText(0)
-            Toast.makeText(this, "Interval Timer Completed!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Intervelo  Completed!", Toast.LENGTH_LONG).show()
             // Show Start button, hide Pause, Restart, Stop
             buttonStart.visibility = View.VISIBLE
             buttonPause.visibility = View.GONE
