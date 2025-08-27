@@ -730,13 +730,18 @@ class MainActivity : AppCompatActivity() {
             currentMultiSetIndex++
             val nextConfig = currentMultiSetQueue[currentMultiSetIndex]
             
-            // Update the current configuration
+            // Update the current configuration variables
             totalSets = nextConfig.sets
             workTimeSeconds = nextConfig.workTime
             restTimeSeconds = nextConfig.restTime
             currentSet = 1
             isWorkPeriod = true
             isFirstConfig = false  // This is not the first config anymore
+            
+            // Update the UI input fields to reflect the new configuration
+            editTextSets.setText(nextConfig.sets.toString())
+            setWorkTimeFromSeconds(nextConfig.workTime)
+            setRestTimeFromSeconds(nextConfig.restTime)
             
             // Show which config we're moving to with description
             Toast.makeText(this, "Starting config ${currentMultiSetIndex + 1}/${currentMultiSetQueue.size}: ${nextConfig.workTime}s/${nextConfig.restTime}s", Toast.LENGTH_SHORT).show()
