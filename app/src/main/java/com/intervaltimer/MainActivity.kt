@@ -32,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonStart: Button
     private lateinit var textViewTimer: TextView
     private lateinit var textViewStatus: TextView
+    private lateinit var textViewConfigInfo: TextView
+    private lateinit var textViewMultiSetRunning: TextView
 
     private lateinit var buttonMinusSets: Button
     private lateinit var buttonPlusSets: Button
@@ -40,6 +42,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonMinusRestTime: Button
     private lateinit var buttonPlusRestTime: Button
 
+    // Layout references for hiding/showing UI sections
+    private lateinit var layoutSetsInput: android.widget.LinearLayout
+    private lateinit var layoutWorkTimeInput: android.widget.LinearLayout
+    private lateinit var layoutRestTimeInput: android.widget.LinearLayout
+    private lateinit var textViewSetsLabel: TextView
+    private lateinit var textViewWorkTimeLabel: TextView
+    private lateinit var textViewRestTimeLabel: TextView
+    private lateinit var textViewMultiSetLabel: TextView
+    private lateinit var buttonAddMultiSetConfig: Button
+
     private lateinit var buttonPause: Button
     private lateinit var buttonRestart: Button
     private lateinit var buttonStop: Button
@@ -47,7 +59,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
 
     // Multi-set configuration variables
-    private lateinit var buttonAddMultiSetConfig: Button
     private lateinit var recyclerViewMultiSetConfigs: RecyclerView
     private lateinit var multiSetConfigAdapter: MultiSetConfigAdapter
     private val multiSetConfigs = mutableListOf<MultiSetConfig>()
@@ -55,6 +66,7 @@ class MainActivity : AppCompatActivity() {
     private var currentMultiSetIndex = 0
     private var isRunningMultiSet = false
     private var isFirstConfig = true  // Flag to track if this is the first config in a multi-set
+    private var currentMultiSetName = ""  // Store the name of the running multi-set
 
     private var countDownTimer: CountDownTimer? = null
     private var currentSet = 0
@@ -77,6 +89,18 @@ class MainActivity : AppCompatActivity() {
         buttonStart = findViewById(R.id.buttonStart)
         textViewTimer = findViewById(R.id.textViewTimer)
         textViewStatus = findViewById(R.id.textViewStatus)
+        textViewConfigInfo = findViewById(R.id.textViewConfigInfo)
+        textViewMultiSetRunning = findViewById(R.id.textViewMultiSetRunning)
+
+        // Get references to layout components for hiding/showing
+        layoutSetsInput = findViewById(R.id.layoutSetsInput)
+        layoutWorkTimeInput = findViewById(R.id.layoutWorkTimeInput)
+        layoutRestTimeInput = findViewById(R.id.layoutRestTimeInput)
+        textViewSetsLabel = findViewById(R.id.textViewSetsLabel)
+        textViewWorkTimeLabel = findViewById(R.id.textViewWorkTimeLabel)
+        textViewRestTimeLabel = findViewById(R.id.textViewRestTimeLabel)
+        textViewMultiSetLabel = findViewById(R.id.textViewMultiSetLabel)
+        buttonAddMultiSetConfig = findViewById(R.id.buttonAddMultiSetConfig)
 
         buttonMinusSets = findViewById(R.id.buttonMinusSets)
         buttonPlusSets = findViewById(R.id.buttonPlusSets)
@@ -91,7 +115,6 @@ class MainActivity : AppCompatActivity() {
 
 
         // Initialize multi-set configuration components
-        buttonAddMultiSetConfig = findViewById(R.id.buttonAddMultiSetConfig)
         recyclerViewMultiSetConfigs = findViewById(R.id.recyclerViewMultiSetConfigs)
 
         sharedPreferences = getSharedPreferences("TimerConfigs", Context.MODE_PRIVATE)
@@ -313,6 +336,12 @@ class MainActivity : AppCompatActivity() {
         buttonPause.text = "Pause"
         
         enableInputFields(false)
+        
+        // Hide configuration sections and show multi-set info when running multi-set
+        if (isRunningMultiSet) {
+            hideConfigurationSections()
+            showMultiSetRunningInfo()
+        }
 
         currentSet = 1
         isWorkPeriod = true
@@ -373,6 +402,8 @@ class MainActivity : AppCompatActivity() {
         isFirstConfig = true  // Reset first config flag when stopping
 
         // Reset UI and enable input fields
+        textViewConfigInfo.visibility = View.GONE
+        textViewMultiSetRunning.visibility = View.GONE
         textViewStatus.text = "Stopped"
         updateTimerText(0)
 
@@ -384,12 +415,25 @@ class MainActivity : AppCompatActivity() {
         buttonPause.text = "Pause"
         
         enableInputFields(true)
+        
+        // Show configuration sections when stopped
+        showConfigurationSections()
     }
 
     private fun startInitialOverallBeep() {
         val initialBeepDuration = 3000L // 3 seconds
         textViewTimer.text = "00:03" // Display 3 seconds for the initial beep
-        textViewStatus.text = "Get Ready!"
+        
+        // Show different Get Ready text for multi-set vs single config
+        if (isRunningMultiSet) {
+            textViewConfigInfo.text = "Config ${workTimeSeconds}s/${restTimeSeconds}s"
+            textViewConfigInfo.visibility = View.VISIBLE
+            textViewStatus.text = "Get Ready!"
+        } else {
+            textViewConfigInfo.visibility = View.GONE
+            textViewStatus.text = "Get Ready!"
+        }
+        
         startService(Intent(this, SoundService::class.java).apply { action = SoundService.ACTION_PLAY_BEEP })
 
         countDownTimer = object : CountDownTimer(initialBeepDuration, 1000) {
@@ -411,7 +455,16 @@ class MainActivity : AppCompatActivity() {
     private fun startPeriod(durationMillis: Long, periodType: String) {
         countDownTimer?.cancel()
         startService(Intent(this@MainActivity, SoundService::class.java).apply { action = SoundService.ACTION_STOP_BEEP })
-        textViewStatus.text = "Set $currentSet: $periodType"
+        
+        // Show different status text for multi-set vs single config
+        if (isRunningMultiSet) {
+            textViewConfigInfo.text = "Config ${workTimeSeconds}s/${restTimeSeconds}s"
+            textViewConfigInfo.visibility = View.VISIBLE
+            textViewStatus.text = "Set $currentSet: $periodType"
+        } else {
+            textViewConfigInfo.visibility = View.GONE
+            textViewStatus.text = "Set $currentSet: $periodType"
+        }
 
         // No period sound played at the beginning of work/rest periods anymore
         timeRemainingMillis = durationMillis // Store total duration for this period
@@ -470,6 +523,8 @@ class MainActivity : AppCompatActivity() {
             if (isRunningMultiSet) {
                 moveToNextMultiSetConfigOrFinish()
             } else {
+                textViewConfigInfo.visibility = View.GONE
+                textViewMultiSetRunning.visibility = View.GONE
                 textViewStatus.text = "Finished!"
                 updateTimerText(0)
                 Toast.makeText(this, "Intervelo  Completed!", Toast.LENGTH_LONG).show()
@@ -481,6 +536,10 @@ class MainActivity : AppCompatActivity() {
                 buttonPause.text = "Pause"
                 
                 enableInputFields(true)
+                
+                // Show configuration sections when single timer finishes
+                showConfigurationSections()
+                
                 stopService(Intent(this@MainActivity, SoundService::class.java)) // Stop the service completely
             }
         }
@@ -603,6 +662,7 @@ class MainActivity : AppCompatActivity() {
         currentMultiSetIndex = 0
         isRunningMultiSet = true
         isFirstConfig = true  // Set this as the first config in the multi-set
+        currentMultiSetName = multiSetConfig.name  // Store the multi-set name
         
         // Load the first config
         val firstConfig = currentMultiSetQueue[0]
@@ -655,8 +715,11 @@ class MainActivity : AppCompatActivity() {
             isWorkPeriod = true
             isFirstConfig = false  // This is not the first config anymore
             
-            // Show which config we're moving to
-            Toast.makeText(this, "Starting config ${currentMultiSetIndex + 1}/${currentMultiSetQueue.size}", Toast.LENGTH_SHORT).show()
+            // Show which config we're moving to with description
+            Toast.makeText(this, "Starting config ${currentMultiSetIndex + 1}/${currentMultiSetQueue.size}: ${nextConfig.workTime}s/${nextConfig.restTime}s", Toast.LENGTH_SHORT).show()
+            
+            // Update the multi-set running info display
+            showMultiSetRunningInfo()
             
             // Start the next config with a brief pause, but skip the Get Ready section
             Handler(Looper.getMainLooper()).postDelayed({
@@ -668,6 +731,8 @@ class MainActivity : AppCompatActivity() {
             currentMultiSetQueue.clear()
             currentMultiSetIndex = 0
             
+            textViewConfigInfo.visibility = View.GONE
+            textViewMultiSetRunning.visibility = View.GONE
             textViewStatus.text = "Multi-Set Finished!"
             updateTimerText(0)
             Toast.makeText(this, "Multi-Set Configuration Completed!", Toast.LENGTH_LONG).show()
@@ -680,7 +745,51 @@ class MainActivity : AppCompatActivity() {
             buttonPause.text = "Pause"
             
             enableInputFields(true)
+            
+            // Show configuration sections when multi-set finishes
+            showConfigurationSections()
+            
             stopService(Intent(this@MainActivity, SoundService::class.java))
+        }
+    }
+
+    private fun hideConfigurationSections() {
+        // Hide input configuration section
+        textViewSetsLabel.visibility = View.GONE
+        layoutSetsInput.visibility = View.GONE
+        textViewWorkTimeLabel.visibility = View.GONE
+        layoutWorkTimeInput.visibility = View.GONE
+        textViewRestTimeLabel.visibility = View.GONE
+        layoutRestTimeInput.visibility = View.GONE
+        
+        // Hide multi-set configuration section
+        textViewMultiSetLabel.visibility = View.GONE
+        buttonAddMultiSetConfig.visibility = View.GONE
+        recyclerViewMultiSetConfigs.visibility = View.GONE
+    }
+
+    private fun showConfigurationSections() {
+        // Show input configuration section
+        textViewSetsLabel.visibility = View.VISIBLE
+        layoutSetsInput.visibility = View.VISIBLE
+        textViewWorkTimeLabel.visibility = View.VISIBLE
+        layoutWorkTimeInput.visibility = View.VISIBLE
+        textViewRestTimeLabel.visibility = View.VISIBLE
+        layoutRestTimeInput.visibility = View.VISIBLE
+        
+        // Show multi-set configuration section
+        textViewMultiSetLabel.visibility = View.VISIBLE
+        buttonAddMultiSetConfig.visibility = View.VISIBLE
+        recyclerViewMultiSetConfigs.visibility = View.VISIBLE
+    }
+
+    private fun showMultiSetRunningInfo() {
+        if (isRunningMultiSet) {
+            val totalConfigs = currentMultiSetQueue.size
+            val currentConfigNum = currentMultiSetIndex + 1
+            val description = "$currentMultiSetName\nConfig $currentConfigNum of $totalConfigs"
+            textViewMultiSetRunning.text = description
+            textViewMultiSetRunning.visibility = View.VISIBLE
         }
     }
 }
