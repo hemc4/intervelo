@@ -6,3 +6,8 @@ data class TimerConfig(
     val workTime: Long,
     val restTime: Long
 )
+
+data class MultiSetConfig(
+    val name: String,
+    val configs: List<TimerConfig>
+)
