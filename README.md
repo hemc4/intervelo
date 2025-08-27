@@ -2,10 +2,13 @@
 <img width="128" height="128" alt="logo_transparent" src="https://github.com/user-attachments/assets/0cb8bc80-bef5-4063-8667-1fcd7a326752" />
 </p>
 
-##  Interval Timer: Your Workout Companion
+## Interval Timer: Your Workout Companion
   Focus on your workout, not the clock. Create custom work and rest intervals for HIIT, Tabata, running, or
   any training style. Save your favorite routines, press start, and let clear audio cues guide you. Simple,
   effective, and built to keep you moving.
+
+## Installation
+App is not released yet on the store yet. In the meantime, you can [download a released apk](https://github.com/hemc4/interval-timer/tree/main/releases/v1).
 
 ## Built with AI
 This app have been vibe coded with AI. It does not connect to any server and run completely on your device. 
@@ -29,7 +32,6 @@ This app have been vibe coded with AI. It does not connect to any server and run
 <img width="205" height="445" alt="logo_transparent" src="https://github.com/user-attachments/assets/0debcf9b-c5da-4238-8438-10893f3476c3" />
 <img width="205" height="445" alt="logo_transparent" src="https://github.com/user-attachments/assets/aad32446-76a4-4350-9f22-efeec5a089be" />
 <img width="205" height="445" alt="logo_transparent" src="https://github.com/user-attachments/assets/6edc50b9-a3ac-4c20-ae01-4049197cd391" />
-<img width="205" height="445" alt="logo_transparent" src="https://github.com/user-attachments/assets/91cbc52d-6c39-4c4c-8ea5-a0c286957241" />
 </p>
 
 ## Upcoming Features
