@@ -787,7 +787,14 @@ class MainActivity : AppCompatActivity() {
         if (isRunningMultiSet) {
             val totalConfigs = currentMultiSetQueue.size
             val currentConfigNum = currentMultiSetIndex + 1
-            val description = "$currentMultiSetName\nConfig $currentConfigNum of $totalConfigs"
+
+            // Build details text showing each config in the sequence (same format as saved listing)
+            val details = currentMultiSetQueue.joinToString(" \n") { subConfig ->
+                "${subConfig.sets} sets * (${subConfig.workTime}s/${subConfig.restTime}s)"
+            }
+
+            // Show multi-set name, full details sequence, and current progress
+            val description = "$currentMultiSetName\n$details"
             textViewMultiSetRunning.text = description
             textViewMultiSetRunning.visibility = View.VISIBLE
         }
