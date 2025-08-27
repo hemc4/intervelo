@@ -1,4 +1,4 @@
-package com.intervaltimer
+package com.intervelo
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -19,15 +19,15 @@ class SoundService : Service() {
     private var periodMediaPlayer: MediaPlayer? = null
 
     companion object {
-        const val ACTION_PLAY_BEEP = "com.intervaltimer.ACTION_PLAY_BEEP"
-        const val ACTION_STOP_BEEP = "com.intervaltimer.ACTION_STOP_BEEP"
-        const val ACTION_PLAY_WORK_SOUND = "com.intervaltimer.ACTION_PLAY_WORK_SOUND"
-        const val ACTION_PLAY_REST_SOUND = "com.intervaltimer.ACTION_PLAY_REST_SOUND"
-        const val ACTION_START_FOREGROUND = "com.intervaltimer.ACTION_START_FOREGROUND"
-        const val ACTION_STOP_FOREGROUND = "com.intervaltimer.ACTION_STOP_FOREGROUND"
+        const val ACTION_PLAY_BEEP = "com.intervelo.ACTION_PLAY_BEEP"
+        const val ACTION_STOP_BEEP = "com.intervelo.ACTION_STOP_BEEP"
+        const val ACTION_PLAY_WORK_SOUND = "com.intervelo.ACTION_PLAY_WORK_SOUND"
+        const val ACTION_PLAY_REST_SOUND = "com.intervelo.ACTION_PLAY_REST_SOUND"
+        const val ACTION_START_FOREGROUND = "com.intervelo.ACTION_START_FOREGROUND"
+        const val ACTION_STOP_FOREGROUND = "com.intervelo.ACTION_STOP_FOREGROUND"
         
         private const val NOTIFICATION_ID = 1
-        private const val CHANNEL_ID = "IntervalTimerChannel"
+        private const val CHANNEL_ID = "InterveloChannel"
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -109,10 +109,10 @@ class SoundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
-                "Interval Timer Service",
+                "Intervelo  Service",
                 NotificationManager.IMPORTANCE_LOW
             )
-            serviceChannel.description = "Keeps interval timer running in background"
+            serviceChannel.description = "Keeps Intervelo  running in background"
             val manager = getSystemService(NotificationManager::class.java)
             manager?.createNotificationChannel(serviceChannel)
         }
@@ -128,7 +128,7 @@ class SoundService : Service() {
         )
         
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Interval Timer")
+            .setContentTitle("Intervelo ")
             .setContentText("Timer is running")
             .setSmallIcon(R.drawable.ic_launcher_watch)
             .setContentIntent(pendingIntent)

@@ -1,4 +1,4 @@
-Let create an interval timer 
+Let create an Intervelo  
 ### Inputs
 * It will have 3 inputs
     * no of sets
