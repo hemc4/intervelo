@@ -211,22 +211,9 @@
         android:text="Start Timer"
         android:textColor="#FFFFFF"
         android:textSize="20sp"
-        app:layout_constraintEnd_toStartOf="@+id/buttonSaveConfigIcon"
-        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutRestTimeInput" />
-
-    <ImageButton
-        android:id="@+id/buttonSaveConfigIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Save Configuration"
-        android:src="@drawable/ic_save_icon"
-        app:layout_constraintBottom_toBottomOf="@+id/buttonStart"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/buttonStart"
-        app:layout_constraintTop_toTopOf="@+id/buttonStart" />
 
     <LinearLayout
         android:id="@+id/layoutControlButtons"
@@ -324,54 +311,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonAddMultiSetConfig" />
 
-    <!-- Saved Configurations Section -->
-    <TextView
-        android:id="@+id/textViewSavedConfigsLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Saved Configurations:"
-        android:textSize="18sp"
-        android:textColor="#1976D2"
-        android:layout_marginTop="24dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerViewMultiSetConfigs" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewSavedConfigs"
-        android:layout_width="0dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewSavedConfigsLabel" />
-
-    <EditText
-        android:id="@+id/editTextConfigName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Configuration Name"
-        android:inputType="textCapWords"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/buttonSaveConfig"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSavedConfigs" />
-
-    <Button
-        android:id="@+id/buttonSaveConfig"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Save"
-        android:backgroundTint="#4CAF50"
-        android:textColor="#FFFFFF"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerViewSavedConfigs"
-        app:layout_constraintTop_toTopOf="@+id/editTextConfigName" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -44,14 +44,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonRestart: Button
     private lateinit var buttonStop: Button
 
-    private lateinit var editTextConfigName: EditText
-    private lateinit var buttonSaveConfig: Button
-    private lateinit var buttonSaveConfigIcon: ImageButton
-    private lateinit var recyclerViewSavedConfigs: RecyclerView
-
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var configAdapter: ConfigAdapter
-    private val savedConfigs = mutableListOf<TimerConfig>()
 
     // Multi-set configuration variables
     private lateinit var buttonAddMultiSetConfig: Button
@@ -61,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     private val currentMultiSetQueue = mutableListOf<TimerConfig>()
     private var currentMultiSetIndex = 0
     private var isRunningMultiSet = false
+    private var isFirstConfig = true  // Flag to track if this is the first config in a multi-set
 
     private var countDownTimer: CountDownTimer? = null
     private var currentSet = 0
@@ -95,10 +89,6 @@ class MainActivity : AppCompatActivity() {
         buttonRestart = findViewById(R.id.buttonRestart)
         buttonStop = findViewById(R.id.buttonStop)
 
-        editTextConfigName = findViewById(R.id.editTextConfigName)
-        buttonSaveConfig = findViewById(R.id.buttonSaveConfig)
-        buttonSaveConfigIcon = findViewById(R.id.buttonSaveConfigIcon)
-        recyclerViewSavedConfigs = findViewById(R.id.recyclerViewSavedConfigs)
 
         // Initialize multi-set configuration components
         buttonAddMultiSetConfig = findViewById(R.id.buttonAddMultiSetConfig)
@@ -110,16 +100,12 @@ class MainActivity : AppCompatActivity() {
         buttonPause.setOnClickListener { pauseTimer() }
         buttonRestart.setOnClickListener { restartTimer() }
         buttonStop.setOnClickListener { stopTimer() }
-        buttonSaveConfig.setOnClickListener { saveConfig() }
-        buttonSaveConfigIcon.setOnClickListener { toggleSaveConfigVisibility() }
 
         // Initial button visibility
         buttonStart.visibility = View.VISIBLE
         buttonPause.visibility = View.GONE
         buttonRestart.visibility = View.GONE
         buttonStop.visibility = View.GONE
-        editTextConfigName.visibility = View.GONE
-        buttonSaveConfig.visibility = View.GONE
 
         buttonMinusSets.setOnClickListener { decrementValue(editTextSets) }
         buttonPlusSets.setOnClickListener { incrementValue(editTextSets) }
@@ -148,19 +134,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Setup RecyclerView for single configs
-        configAdapter = ConfigAdapter(savedConfigs, {
-            // Handle item click: load config into EditTexts
-            editTextSets.setText(it.sets.toString())
-            setWorkTimeFromSeconds(it.workTime)
-            setRestTimeFromSeconds(it.restTime)
-            Toast.makeText(this, "Loaded: ${it.name}", Toast.LENGTH_SHORT).show()
-        }, {
-            // Handle delete click
-            deleteConfig(it)
-        })
-        recyclerViewSavedConfigs.layoutManager = LinearLayoutManager(this)
-        recyclerViewSavedConfigs.adapter = configAdapter
 
         // Setup RecyclerView for multi-set configs
         multiSetConfigAdapter = MultiSetConfigAdapter(multiSetConfigs, {
@@ -176,24 +149,9 @@ class MainActivity : AppCompatActivity() {
         // Set click listener for add multi-set config button
         buttonAddMultiSetConfig.setOnClickListener { addCurrentConfigToMultiSet() }
 
-        loadConfigs() // Load saved configs on startup
         loadMultiSetConfigs() // Load saved multi-set configs on startup
     }
 
-    private fun deleteConfig(config: TimerConfig) {
-        savedConfigs.remove(config)
-        configAdapter.notifyDataSetChanged()
-        saveConfigsToPrefs()
-        Toast.makeText(this, "Deleted: ${config.name}", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun saveConfigsToPrefs() {
-        val editor = sharedPreferences.edit()
-        val gson = Gson()
-        val json = gson.toJson(savedConfigs)
-        editor.putString("saved_timer_configs", json)
-        editor.apply()
-    }
 
     private fun enableInputFields(enable: Boolean) {
         editTextSets.isEnabled = enable
@@ -207,78 +165,10 @@ class MainActivity : AppCompatActivity() {
         buttonPlusWorkTime.isEnabled = enable
         buttonMinusRestTime.isEnabled = enable
         buttonPlusRestTime.isEnabled = enable
-        editTextConfigName.isEnabled = enable // Enable/disable config name input
-        buttonSaveConfig.isEnabled = enable // Enable/disable save button
     }
 
-    private fun saveConfig() {
-        val configName = editTextConfigName.text.toString().trim()
-        if (configName.isEmpty()) {
-            Toast.makeText(this, "Please enter a configuration name", Toast.LENGTH_SHORT).show()
-            return
-        }
 
-        val sets = editTextSets.text.toString().toIntOrNull()
-        val workTime = getWorkTimeInSeconds()
-        val restTime = getRestTimeInSeconds()
 
-        if (sets == null || workTime <= 0 || restTime < 0) {
-            Toast.makeText(this, "Please enter valid timer values", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val newConfig = TimerConfig(configName, sets, workTime, restTime)
-
-        // Check if a config with the same name already exists and replace it
-        val existingIndex = savedConfigs.indexOfFirst { it.name == configName }
-        if (existingIndex != -1) {
-            savedConfigs[existingIndex] = newConfig
-            Toast.makeText(this, "Configuration \"$configName\" updated!", Toast.LENGTH_SHORT).show()
-        } else {
-            savedConfigs.add(newConfig)
-            Toast.makeText(this, "Configuration \"$configName\" saved!", Toast.LENGTH_SHORT).show()
-        }
-
-        // Sort by name for consistent display
-        savedConfigs.sortBy { it.name }
-        configAdapter.notifyDataSetChanged()
-
-        // Save to SharedPreferences
-        saveConfigsToPrefs()
-
-        editTextConfigName.text.clear()
-        editTextConfigName.visibility = View.GONE
-        buttonSaveConfig.visibility = View.GONE
-    }
-
-    private fun toggleSaveConfigVisibility() {
-        if (editTextConfigName.visibility == View.VISIBLE) {
-            editTextConfigName.visibility = View.GONE
-            buttonSaveConfig.visibility = View.GONE
-            // Hide keyboard
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(editTextConfigName.windowToken, 0)
-        } else {
-            editTextConfigName.visibility = View.VISIBLE
-            buttonSaveConfig.visibility = View.VISIBLE
-            editTextConfigName.requestFocus()
-            // Show keyboard
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(editTextConfigName, InputMethodManager.SHOW_IMPLICIT)
-        }
-    }
-
-    private fun loadConfigs() {
-        val gson = Gson()
-        val json = sharedPreferences.getString("saved_timer_configs", null)
-        if (json != null) {
-            val type = object : TypeToken<MutableList<TimerConfig>>() {}.type
-            val loadedList: MutableList<TimerConfig> = gson.fromJson(json, type)
-            savedConfigs.clear()
-            savedConfigs.addAll(loadedList)
-            configAdapter.notifyDataSetChanged()
-        }
-    }
 
     private fun decrementValue(editText: EditText) {
         var value = editText.text.toString().toIntOrNull() ?: 0
@@ -422,20 +312,19 @@ class MainActivity : AppCompatActivity() {
         buttonRestart.visibility = View.GONE
         buttonPause.text = "Pause"
         
-        // Hide save config icon when timer is active
-        buttonSaveConfigIcon.visibility = View.GONE
-        // Also hide save input fields if they're visible
-        editTextConfigName.visibility = View.GONE
-        buttonSaveConfig.visibility = View.GONE
-
         enableInputFields(false)
 
         currentSet = 1
         isWorkPeriod = true
         isPaused = false
 
-        // Start initial 3-second beep before the first work period
-        startInitialOverallBeep()
+        // Start initial 3-second beep before the first work period, but only for first config in multi-set
+        if (!isRunningMultiSet || isFirstConfig) {
+            startInitialOverallBeep()
+        } else {
+            // Skip the Get Ready section for subsequent configs in a multi-set
+            startPeriod(workTimeSeconds * 1000, "Work")
+        }
     }
 
     private fun pauseTimer() {
@@ -481,6 +370,7 @@ class MainActivity : AppCompatActivity() {
         isRunningMultiSet = false
         currentMultiSetQueue.clear()
         currentMultiSetIndex = 0
+        isFirstConfig = true  // Reset first config flag when stopping
 
         // Reset UI and enable input fields
         textViewStatus.text = "Stopped"
@@ -493,9 +383,6 @@ class MainActivity : AppCompatActivity() {
         buttonStop.visibility = View.GONE
         buttonPause.text = "Pause"
         
-        // Show save config icon when timer is stopped
-        buttonSaveConfigIcon.visibility = View.VISIBLE
-
         enableInputFields(true)
     }
 
@@ -592,9 +479,6 @@ class MainActivity : AppCompatActivity() {
                 buttonRestart.visibility = View.GONE
                 buttonStop.visibility = View.GONE
                 buttonPause.text = "Pause"
-                
-                // Show save config icon when timer finishes
-                buttonSaveConfigIcon.visibility = View.VISIBLE
                 
                 enableInputFields(true)
                 stopService(Intent(this@MainActivity, SoundService::class.java)) // Stop the service completely
@@ -718,6 +602,7 @@ class MainActivity : AppCompatActivity() {
         currentMultiSetQueue.addAll(multiSetConfig.configs)
         currentMultiSetIndex = 0
         isRunningMultiSet = true
+        isFirstConfig = true  // Set this as the first config in the multi-set
         
         // Load the first config
         val firstConfig = currentMultiSetQueue[0]
@@ -768,13 +653,14 @@ class MainActivity : AppCompatActivity() {
             restTimeSeconds = nextConfig.restTime
             currentSet = 1
             isWorkPeriod = true
+            isFirstConfig = false  // This is not the first config anymore
             
             // Show which config we're moving to
             Toast.makeText(this, "Starting config ${currentMultiSetIndex + 1}/${currentMultiSetQueue.size}", Toast.LENGTH_SHORT).show()
             
-            // Start the next config with a brief pause
+            // Start the next config with a brief pause, but skip the Get Ready section
             Handler(Looper.getMainLooper()).postDelayed({
-                startInitialOverallBeep()
+                startTimer()
             }, 2000) // 2 second break between configs
         } else {
             // Finished all configs in multi-set
@@ -792,9 +678,6 @@ class MainActivity : AppCompatActivity() {
             buttonRestart.visibility = View.GONE
             buttonStop.visibility = View.GONE
             buttonPause.text = "Pause"
-            
-            // Show save config icon when timer finishes
-            buttonSaveConfigIcon.visibility = View.VISIBLE
             
             enableInputFields(true)
             stopService(Intent(this@MainActivity, SoundService::class.java))
