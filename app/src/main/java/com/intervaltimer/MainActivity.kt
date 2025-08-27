@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import android.app.AlertDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,6 +52,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var configAdapter: ConfigAdapter
     private val savedConfigs = mutableListOf<TimerConfig>()
+
+    // Multi-set configuration variables
+    private lateinit var buttonAddMultiSetConfig: Button
+    private lateinit var recyclerViewMultiSetConfigs: RecyclerView
+    private lateinit var multiSetConfigAdapter: MultiSetConfigAdapter
+    private val multiSetConfigs = mutableListOf<MultiSetConfig>()
+    private val currentMultiSetQueue = mutableListOf<TimerConfig>()
+    private var currentMultiSetIndex = 0
+    private var isRunningMultiSet = false
 
     private var countDownTimer: CountDownTimer? = null
     private var currentSet = 0
@@ -89,6 +99,10 @@ class MainActivity : AppCompatActivity() {
         buttonSaveConfig = findViewById(R.id.buttonSaveConfig)
         buttonSaveConfigIcon = findViewById(R.id.buttonSaveConfigIcon)
         recyclerViewSavedConfigs = findViewById(R.id.recyclerViewSavedConfigs)
+
+        // Initialize multi-set configuration components
+        buttonAddMultiSetConfig = findViewById(R.id.buttonAddMultiSetConfig)
+        recyclerViewMultiSetConfigs = findViewById(R.id.recyclerViewMultiSetConfigs)
 
         sharedPreferences = getSharedPreferences("TimerConfigs", Context.MODE_PRIVATE)
 
@@ -134,7 +148,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Setup RecyclerView
+        // Setup RecyclerView for single configs
         configAdapter = ConfigAdapter(savedConfigs, {
             // Handle item click: load config into EditTexts
             editTextSets.setText(it.sets.toString())
@@ -148,7 +162,22 @@ class MainActivity : AppCompatActivity() {
         recyclerViewSavedConfigs.layoutManager = LinearLayoutManager(this)
         recyclerViewSavedConfigs.adapter = configAdapter
 
+        // Setup RecyclerView for multi-set configs
+        multiSetConfigAdapter = MultiSetConfigAdapter(multiSetConfigs, {
+            // Handle item click: start multi-set configuration
+            startMultiSetConfiguration(it)
+        }, {
+            // Handle delete click
+            deleteMultiSetConfig(it)
+        })
+        recyclerViewMultiSetConfigs.layoutManager = LinearLayoutManager(this)
+        recyclerViewMultiSetConfigs.adapter = multiSetConfigAdapter
+
+        // Set click listener for add multi-set config button
+        buttonAddMultiSetConfig.setOnClickListener { addCurrentConfigToMultiSet() }
+
         loadConfigs() // Load saved configs on startup
+        loadMultiSetConfigs() // Load saved multi-set configs on startup
     }
 
     private fun deleteConfig(config: TimerConfig) {
@@ -447,6 +476,11 @@ class MainActivity : AppCompatActivity() {
         workTimeSeconds = 0L
         restTimeSeconds = 0L
         isWorkPeriod = true
+        
+        // Reset multi-set state
+        isRunningMultiSet = false
+        currentMultiSetQueue.clear()
+        currentMultiSetIndex = 0
 
         // Reset UI and enable input fields
         textViewStatus.text = "Stopped"
@@ -545,21 +579,26 @@ class MainActivity : AppCompatActivity() {
             currentSet++
             startPeriod(workTimeSeconds * 1000, "Work")
         } else {
-            textViewStatus.text = "Finished!"
-            updateTimerText(0)
-            Toast.makeText(this, "Intervelo  Completed!", Toast.LENGTH_LONG).show()
-            // Show Start button, hide Pause, Restart, Stop
-            buttonStart.visibility = View.VISIBLE
-            buttonPause.visibility = View.GONE
-            buttonRestart.visibility = View.GONE
-            buttonStop.visibility = View.GONE
-            buttonPause.text = "Pause"
-            
-            // Show save config icon when timer finishes
-            buttonSaveConfigIcon.visibility = View.VISIBLE
-            
-            enableInputFields(true)
-            stopService(Intent(this@MainActivity, SoundService::class.java)) // Stop the service completely
+            // Current configuration is finished
+            if (isRunningMultiSet) {
+                moveToNextMultiSetConfigOrFinish()
+            } else {
+                textViewStatus.text = "Finished!"
+                updateTimerText(0)
+                Toast.makeText(this, "Intervelo  Completed!", Toast.LENGTH_LONG).show()
+                // Show Start button, hide Pause, Restart, Stop
+                buttonStart.visibility = View.VISIBLE
+                buttonPause.visibility = View.GONE
+                buttonRestart.visibility = View.GONE
+                buttonStop.visibility = View.GONE
+                buttonPause.text = "Pause"
+                
+                // Show save config icon when timer finishes
+                buttonSaveConfigIcon.visibility = View.VISIBLE
+                
+                enableInputFields(true)
+                stopService(Intent(this@MainActivity, SoundService::class.java)) // Stop the service completely
+            }
         }
     }
 
@@ -599,5 +638,166 @@ class MainActivity : AppCompatActivity() {
         countDownTimer?.cancel()
         startService(Intent(this, SoundService::class.java).apply { action = SoundService.ACTION_STOP_FOREGROUND })
         stopService(Intent(this@MainActivity, SoundService::class.java)) // Stop the service completely
+    }
+
+    // Multi-set configuration methods
+    private fun addCurrentConfigToMultiSet() {
+        val sets = editTextSets.text.toString().toIntOrNull()
+        val workTime = getWorkTimeInSeconds()
+        val restTime = getRestTimeInSeconds()
+
+        if (sets == null || workTime <= 0 || restTime < 0) {
+            Toast.makeText(this, "Please enter valid timer values", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        showAddToMultiSetDialog(TimerConfig("Config ${multiSetConfigs.size + 1}", sets, workTime, restTime))
+    }
+
+    private fun showAddToMultiSetDialog(config: TimerConfig) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Add to Multi-Set Configuration")
+        
+        val editText = EditText(this)
+        editText.hint = "Enter configuration name"
+        builder.setView(editText)
+
+        builder.setPositiveButton("Add to New") { _, _ ->
+            val multiSetName = editText.text.toString().trim()
+            if (multiSetName.isEmpty()) {
+                Toast.makeText(this, "Please enter a name", Toast.LENGTH_SHORT).show()
+                return@setPositiveButton
+            }
+            
+            val newMultiSetConfig = MultiSetConfig(multiSetName, listOf(config))
+            multiSetConfigs.add(newMultiSetConfig)
+            multiSetConfigAdapter.notifyDataSetChanged()
+            saveMultiSetConfigs()
+            Toast.makeText(this, "Created new multi-set: $multiSetName", Toast.LENGTH_SHORT).show()
+        }
+        
+        builder.setNegativeButton("Add to Existing") { _, _ ->
+            if (multiSetConfigs.isEmpty()) {
+                Toast.makeText(this, "No existing multi-set configurations", Toast.LENGTH_SHORT).show()
+                return@setNegativeButton
+            }
+            showSelectExistingMultiSetDialog(config)
+        }
+        
+        builder.setNeutralButton("Cancel", null)
+        builder.show()
+    }
+
+    private fun showSelectExistingMultiSetDialog(config: TimerConfig) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Select Multi-Set Configuration")
+        
+        val names = multiSetConfigs.map { it.name }.toTypedArray()
+        builder.setItems(names) { _, which ->
+            val selectedMultiSet = multiSetConfigs[which]
+            val updatedConfigs = selectedMultiSet.configs.toMutableList()
+            updatedConfigs.add(config)
+            
+            multiSetConfigs[which] = selectedMultiSet.copy(configs = updatedConfigs)
+            multiSetConfigAdapter.notifyDataSetChanged()
+            saveMultiSetConfigs()
+            Toast.makeText(this, "Added to ${selectedMultiSet.name}", Toast.LENGTH_SHORT).show()
+        }
+        
+        builder.setNegativeButton("Cancel", null)
+        builder.show()
+    }
+
+    private fun startMultiSetConfiguration(multiSetConfig: MultiSetConfig) {
+        if (multiSetConfig.configs.isEmpty()) {
+            Toast.makeText(this, "Multi-set configuration is empty", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        currentMultiSetQueue.clear()
+        currentMultiSetQueue.addAll(multiSetConfig.configs)
+        currentMultiSetIndex = 0
+        isRunningMultiSet = true
+        
+        // Load the first config
+        val firstConfig = currentMultiSetQueue[0]
+        editTextSets.setText(firstConfig.sets.toString())
+        setWorkTimeFromSeconds(firstConfig.workTime)
+        setRestTimeFromSeconds(firstConfig.restTime)
+        
+        Toast.makeText(this, "Starting multi-set: ${multiSetConfig.name}", Toast.LENGTH_SHORT).show()
+        startTimer()
+    }
+
+    private fun deleteMultiSetConfig(config: MultiSetConfig) {
+        multiSetConfigs.remove(config)
+        multiSetConfigAdapter.notifyDataSetChanged()
+        saveMultiSetConfigs()
+        Toast.makeText(this, "Deleted multi-set: ${config.name}", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun loadMultiSetConfigs() {
+        val gson = Gson()
+        val json = sharedPreferences.getString("saved_multiset_configs", null)
+        if (json != null) {
+            val type = object : TypeToken<MutableList<MultiSetConfig>>() {}.type
+            val loadedList: MutableList<MultiSetConfig> = gson.fromJson(json, type)
+            multiSetConfigs.clear()
+            multiSetConfigs.addAll(loadedList)
+            multiSetConfigAdapter.notifyDataSetChanged()
+        }
+    }
+
+    private fun saveMultiSetConfigs() {
+        val editor = sharedPreferences.edit()
+        val gson = Gson()
+        val json = gson.toJson(multiSetConfigs)
+        editor.putString("saved_multiset_configs", json)
+        editor.apply()
+    }
+
+    private fun moveToNextMultiSetConfigOrFinish() {
+        if (isRunningMultiSet && currentMultiSetIndex < currentMultiSetQueue.size - 1) {
+            // Move to next config in the multi-set
+            currentMultiSetIndex++
+            val nextConfig = currentMultiSetQueue[currentMultiSetIndex]
+            
+            // Update the current configuration
+            totalSets = nextConfig.sets
+            workTimeSeconds = nextConfig.workTime
+            restTimeSeconds = nextConfig.restTime
+            currentSet = 1
+            isWorkPeriod = true
+            
+            // Show which config we're moving to
+            Toast.makeText(this, "Starting config ${currentMultiSetIndex + 1}/${currentMultiSetQueue.size}", Toast.LENGTH_SHORT).show()
+            
+            // Start the next config with a brief pause
+            Handler(Looper.getMainLooper()).postDelayed({
+                startInitialOverallBeep()
+            }, 2000) // 2 second break between configs
+        } else {
+            // Finished all configs in multi-set
+            isRunningMultiSet = false
+            currentMultiSetQueue.clear()
+            currentMultiSetIndex = 0
+            
+            textViewStatus.text = "Multi-Set Finished!"
+            updateTimerText(0)
+            Toast.makeText(this, "Multi-Set Configuration Completed!", Toast.LENGTH_LONG).show()
+            
+            // Show Start button, hide Pause, Restart, Stop
+            buttonStart.visibility = View.VISIBLE
+            buttonPause.visibility = View.GONE
+            buttonRestart.visibility = View.GONE
+            buttonStop.visibility = View.GONE
+            buttonPause.text = "Pause"
+            
+            // Show save config icon when timer finishes
+            buttonSaveConfigIcon.visibility = View.VISIBLE
+            
+            enableInputFields(true)
+            stopService(Intent(this@MainActivity, SoundService::class.java))
+        }
     }
 }

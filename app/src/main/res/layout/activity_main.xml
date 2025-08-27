@@ -291,6 +291,39 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewTimer" />
 
+    <!-- Multi-Set Configuration Section -->
+    <TextView
+        android:id="@+id/textViewMultiSetLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Multi-Set Configuration:"
+        android:textSize="18sp"
+        android:textColor="#1976D2"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewStatus" />
+
+    <Button
+        android:id="@+id/buttonAddMultiSetConfig"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+ Add Config"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewMultiSetLabel" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewMultiSetConfigs"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonAddMultiSetConfig" />
+
     <!-- Saved Configurations Section -->
     <TextView
         android:id="@+id/textViewSavedConfigsLabel"
@@ -301,7 +334,7 @@
         android:textColor="#1976D2"
         android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewStatus" />
+        app:layout_constraintTop_toBottomOf="@+id/recyclerViewMultiSetConfigs" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewSavedConfigs"
