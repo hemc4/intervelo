@@ -1,5 +1,5 @@
 <p align="center">
-<img width="128" height="128" alt="logo_transparent" src="https://github.com/user-attachments/assets/0cb8bc80-bef5-4063-8667-1fcd7a326752" />
+<img width="128" height="128" alt="logo_transparent" src="https://github.com/user-attachments/assets/e7fa5f05-7961-448d-b8bf-c4ba8c7fd995" />
 </p>
 
 ## Intervelo : Your Workout Companion
@@ -46,3 +46,4 @@ Thank you for using the app. If you discover any bug, security vulnerability or 
 ## License
 
 This app is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
