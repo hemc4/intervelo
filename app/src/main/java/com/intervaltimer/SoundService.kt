@@ -10,6 +10,7 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 
 class SoundService : Service() {
@@ -49,8 +50,10 @@ class SoundService : Service() {
         try {
             periodMediaPlayer?.release()
             periodMediaPlayer = null
-            periodMediaPlayer = MediaPlayer.create(this, resId)
-            periodMediaPlayer?.start()
+            periodMediaPlayer = MediaPlayer.create(this, resId).apply {
+                setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
+                start()
+            }
         } catch (e: Exception) {
             // Handle error gracefully - log or ignore
             periodMediaPlayer = null
@@ -60,10 +63,12 @@ class SoundService : Service() {
     private fun startBeepSound() {
         try {
             stopBeepSound() // Ensure any previous beep sound is stopped and released
-            beepMediaPlayer = MediaPlayer.create(this, R.raw.beep)
-            beepMediaPlayer?.isLooping = true
-            beepMediaPlayer?.setVolume(1.0f, 1.0f)
-            beepMediaPlayer?.start()
+            beepMediaPlayer = MediaPlayer.create(this, R.raw.beep).apply {
+                isLooping = true
+                setVolume(1.0f, 1.0f)
+                setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
+                start()
+            }
         } catch (e: Exception) {
             // Handle error gracefully
             beepMediaPlayer = null
