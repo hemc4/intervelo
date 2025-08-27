@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import android.app.AlertDialog
+import androidx.core.content.ContextCompat
+import android.widget.ScrollView
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,6 +53,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewRestTimeLabel: TextView
     private lateinit var textViewMultiSetLabel: TextView
     private lateinit var buttonAddMultiSetConfig: Button
+
+    // Background reference for color changes
+    private lateinit var scrollViewBackground: ScrollView
 
     private lateinit var buttonPause: Button
     private lateinit var buttonRestart: Button
@@ -101,6 +106,9 @@ class MainActivity : AppCompatActivity() {
         textViewRestTimeLabel = findViewById(R.id.textViewRestTimeLabel)
         textViewMultiSetLabel = findViewById(R.id.textViewMultiSetLabel)
         buttonAddMultiSetConfig = findViewById(R.id.buttonAddMultiSetConfig)
+        
+        // Initialize background reference  
+        scrollViewBackground = findViewById(R.id.scrollViewMain)
 
         buttonMinusSets = findViewById(R.id.buttonMinusSets)
         buttonPlusSets = findViewById(R.id.buttonPlusSets)
@@ -401,6 +409,9 @@ class MainActivity : AppCompatActivity() {
         currentMultiSetIndex = 0
         isFirstConfig = true  // Reset first config flag when stopping
 
+        // Reset background color
+        setDefaultBackgroundColor()
+
         // Reset UI and enable input fields
         textViewConfigInfo.visibility = View.GONE
         textViewMultiSetRunning.visibility = View.GONE
@@ -455,6 +466,13 @@ class MainActivity : AppCompatActivity() {
     private fun startPeriod(durationMillis: Long, periodType: String) {
         countDownTimer?.cancel()
         startService(Intent(this@MainActivity, SoundService::class.java).apply { action = SoundService.ACTION_STOP_BEEP })
+        
+        // Change background color based on period type
+        if (periodType == "Work") {
+            setWorkBackgroundColor()
+        } else {
+            setRestBackgroundColor()
+        }
         
         // Show different status text for multi-set vs single config
         if (isRunningMultiSet) {
@@ -523,6 +541,9 @@ class MainActivity : AppCompatActivity() {
             if (isRunningMultiSet) {
                 moveToNextMultiSetConfigOrFinish()
             } else {
+                // Reset background color when single timer finishes
+                setDefaultBackgroundColor()
+                
                 textViewConfigInfo.visibility = View.GONE
                 textViewMultiSetRunning.visibility = View.GONE
                 textViewStatus.text = "Finished!"
@@ -731,6 +752,9 @@ class MainActivity : AppCompatActivity() {
             currentMultiSetQueue.clear()
             currentMultiSetIndex = 0
             
+            // Reset background color when multi-set finishes
+            setDefaultBackgroundColor()
+            
             textViewConfigInfo.visibility = View.GONE
             textViewMultiSetRunning.visibility = View.GONE
             textViewStatus.text = "Multi-Set Finished!"
@@ -789,14 +813,27 @@ class MainActivity : AppCompatActivity() {
             val currentConfigNum = currentMultiSetIndex + 1
 
             // Build details text showing each config in the sequence (same format as saved listing)
-            val details = currentMultiSetQueue.joinToString(" \n") { subConfig ->
-                "${subConfig.sets} sets * (${subConfig.workTime}s/${subConfig.restTime}s)"
+            val details = currentMultiSetQueue.joinToString(" → ") { subConfig ->
+                "${subConfig.sets} sets (${subConfig.workTime}s/${subConfig.restTime}s)"
             }
 
             // Show multi-set name, full details sequence, and current progress
-            val description = "$currentMultiSetName\n$details"
+            val description = "$currentMultiSetName\n$details\nConfig $currentConfigNum of $totalConfigs"
             textViewMultiSetRunning.text = description
             textViewMultiSetRunning.visibility = View.VISIBLE
         }
+    }
+
+    // Background color management methods
+    private fun setWorkBackgroundColor() {
+        scrollViewBackground.setBackgroundColor(0xFFFFEB99.toInt()) // Darker yellow color
+    }
+
+    private fun setRestBackgroundColor() {
+        scrollViewBackground.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_light))
+    }
+
+    private fun setDefaultBackgroundColor() {
+        scrollViewBackground.setBackgroundColor(0xFFE3F2FD.toInt()) // Original blue background
     }
 }
